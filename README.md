@@ -1,5 +1,5 @@
-CAGGLE - a Comprehensive dAtAbase for Candida GLabrata
-=======================================================
+CAAGLE - A Comprehensive Database For Candida glabrata
+======================================================
 
 #Prerequisites
 
@@ -9,11 +9,13 @@ To run this project, you need:
 
 * several python libraries:
 
-    * [Flask Web framework](http://flask.pocoo.org)
+    * [Flask microframework](http://flask.pocoo.org)
     * [PyRNA](https://github.com/fjossinet/RNA-Science-Toolbox)
     * [PyMongo](https://api.mongodb.org/python/current/)
 
-* MongoDB
+* [MongoDB](https://www.mongodb.org/)
+
+* [Seqmap](http://www-personal.umich.edu/~jianghui/seqmap/)
 
 #Quickstart
 
