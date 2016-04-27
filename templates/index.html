@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Caagle</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="static/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="static/css/modern-business.css" rel="stylesheet">
+    <link href="static/css/custom.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="static/css/font-awesome.css" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="index.html">Caagle</a>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="crispr.html">CRISPR Tool</a>
+                    </li>
+                    <li>
+                        <a href="#">Orthologs</a>
+                    </li>
+                    <li>
+                        <a href="#">Browser</a>
+                    </li>
+                    <li>
+                        <a href="about.html">About</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Intro Header -->
+<!--     <header class="intro">
+        <div class="intro-body">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-8 col-md-offset-2">
+                        <h1 class="brand-heading">Caagle</h1>
+                        <p class="intro-text">A comprehensive database for <i>Candida glabrata</i>.</p>
+                        <a href="#marketing-icons" class="btn btn-circle page-scroll">
+                            <i class="fa fa-angle-double-down animated"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header> -->
+
+    <!-- Header Carousel -->
+    <header id="myCarousel" class="carousel slide">
+        <!-- Indicators -->
+        <ol class="carousel-indicators">
+            <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+            <li data-target="#myCarousel" data-slide-to="1"></li>
+            <li data-target="#myCarousel" data-slide-to="2"></li>
+        </ol>
+
+        <!-- Wrapper for slides -->
+        <div class="carousel-inner">
+            <div class="item active">
+                <div class="fill" style="background-image:url('static/img/candida_tropicalis_YC466.jpg');"></div>
+                <div class="carousel-caption">
+                </div>
+            </div>
+            <div class="item">
+                <div class="fill" style="background-image:url('static/img/m241-5-Chlamydospores-of-Candida-albicans-Goodman.jpg');"></div>
+                <div class="carousel-caption">
+                </div>
+            </div>
+            <div class="item">
+                <div class="fill" style="background-image:url('static/img/Candida_pap_1_green_edit_comp.jpg');"></div>
+                <div class="carousel-caption">
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Controls -->
+        <a class="left carousel-control" href="#myCarousel" data-slide="prev">
+            <span class="icon-prev"></span>
+        </a>
+        <a class="right carousel-control" href="#myCarousel" data-slide="next">
+            <span class="icon-next"></span>
+        </a>
+    </header>
+
+    <!-- Page Content -->
+    <div class="container">
+
+        <!-- Marketing Icons Section -->
+        <div class="row" id="marketing-icons">
+            <div class="col-lg-12">
+                <h1 class="page-header">
+                    A functional genomic database on <i>Candida glabrata</i> and close species
+                </h1>
+            </div>
+            <div class="col-md-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4><i class="fa fa-scissors"></i> CRISPR/Cas9 design tool</h4>
+                    </div>
+                    <div class="panel-body">
+                        <p> Design optimal guide RNAs for use with the CRISPR/Cas9 system in <i>Candida glabrata</i> species with our online tool. It is free, easy to use and super awesome.</p>
+                        <a href="crispr.html" class="btn btn-default">Learn More</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+<!--                         <i class="fa fa-link"></i>
+                             <i class="fa fa-bars"></i>
+                             <i class="fa fa-list"></i>
+                             <i class="fa fa-tasks"></i>
+                             <i class="fa fa-sitemap"></i>
+                        <i class="fa fa-bar-chart"></i> -->
+                        <h4><i class="fa fa-sitemap"></i> Gene orthologs explorer</h4>
+                    </div>
+                    <div class="panel-body">
+                        <p> Compare thousands of gene orthologs which link the different <i>Candida</i> species and learn how evolution led to so much diversity. Trust us, it is amazing.</p>
+                        <a href="#" class="btn btn-default">Learn More</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4><i class="fa fa-eye"></i> Integrated genome browser</h4>
+                    </div>
+                    <div class="panel-body">
+                        <p> Explore the genome of selected <i>Candida</i> species and their annotated genes with Bacara, our asychronous genome browser. You won't believe how fun it is.</p>
+                        <a href="#" class="btn btn-default">Learn More</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <hr>
+
+        <!-- Call to Action Section -->
+        <div class="well">
+            <div class="row">
+                <div class="col-md-8">
+                    <p>Feel free to email us to provide some feedback on Caagle, give us suggestions, or to just say hello!</p>
+                </div>
+                <div class="col-md-4">
+                    <a class="btn btn-lg btn-default btn-block" href="mailto:f.jossinet@ibmc-cnrs.unistra.fr">Contact us</a>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- Footer -->
+        <footer>
+            <div class="row">
+                <div class="col-lg-12">
+                    <p>"If you like Google, you'll love Caagle." &copy; 2016 Caagle</p>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+    <!-- /.container -->
+
+    <!-- jQuery -->
+    <script src="static/js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="static/js/bootstrap.min.js"></script>
+
+    <!-- Script to Activate the Carousel -->
+   <script type="text/javascript">
+    $('.carousel').carousel({
+        interval: 5000 //changes the speed
+    })
+
+    window.jQuery || document.write('<script src="{{url_for('static', filename='jquery.js') }}">\x3C/script>')
+    </script>
+
+</body>
+
+</html>
