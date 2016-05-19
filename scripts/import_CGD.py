@@ -8,8 +8,6 @@ from bson import ObjectId
 from bs4 import BeautifulSoup
 
 """
---Version of March 18, 2016--
-
 COMMAND-LINE
 ------------
 You can run the program with this command-line:
