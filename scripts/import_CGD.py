@@ -16,11 +16,30 @@ You can run the program with this command-line:
 ./construct_db.py
 """
 
+def dump_data():
+    """
+    This function recovers from the database GRYC (http://www.igenolevures.org) all the data necessary to construct the CAGGLE DB (except for C. dubliniensis which is recovered from NCBI). It will produce one directory per species. In each directory, it will dump the data in these files:
+    - sequences.fasta: genomic sequences
+    - proteins.fasta: protein sequences.
+    For the species C. glabrata, this script will also produce a file named locus_tag.txt. This file will be used for the next step (see function import_cgd())
+    """
+
+    dirname = os.path.abspath(os.path.dirname(__file__))+'/../data'
+    if not os.path.exists(dirname):
+        #we create the data dir
+        pass
+    species = ['Candida_glabrata_CBS_138'] #the species we're interested in
+    for s in species:
+        if not os.path.exists(dirname+'/'+s):
+            #we create the species dir
+            pass
+        #now we recover and dump the data in this dir
+
 def create_databases():
     """
     CGD: Candida Genome Database http://www.candidagenome.org/
     GRYC: Genome Resources for Yeast Chromosomes http://gryc.inra.fr/
-    
+
     Step 1. For the four CGD Candida species (C. glabrata CBS138, C. albicans SC5314, C. dubliniensis CD36, C. parapsilosis CDC317) and the five GRYC Nakaseomyces species (C. bracarensis, C. castellii, C. nivariensis, N. bacillisporus, N. delphensis),
     creation of a MongoDB with the name of each species that contains a table named 'genomes' with the following fields:
         '_id'
@@ -40,8 +59,7 @@ def create_databases():
     """
     client = MongoClient()
 
-    ### IN THE LINE BELOW: change the path indicating where the 'Data' directory is located ###
-    dirname = os.path.abspath(os.path.dirname(__file__))+'/data'
+    dirname = os.path.abspath(os.path.dirname(__file__))+'/../data'
 
     print dirname
     pattern = re.compile('^BN\d{3,3}(_\w{4,4}\ds\d\d)e.+$')
@@ -67,12 +85,12 @@ def create_databases():
                     for p in protein_molecules:
                         tokens = p.name.split()
                         if p.sequence.endswith("*"):
-                            p.sequence = p.sequence[:-1]    
+                            p.sequence = p.sequence[:-1]
                         infos = {
                                 '_id': str(ObjectId()),
                                 'source': "db:gryc:%s"%species,
                                 'class': 'CDS',
-                                'locus_tag': tokens[0], 
+                                'locus_tag': tokens[0],
                                 'translation': p.sequence,
                                 'description': ' '.join(tokens[1:])
                                 }
@@ -80,7 +98,7 @@ def create_databases():
                         if match:
                             infos['genomeName'] = match.group(1)
                             genome = client[species]['genomes'].find_one({'name': infos['genomeName']})
-                            if genome: 
+                            if genome:
                                 infos['genome'] = genome['_id']+'@genomes'
                         else:
                             print "Warning: locus tag %s has no genome name!"%tokens[0]
@@ -129,7 +147,7 @@ def import_cgd():
     client.disconnect()
 
 def parse_cgd_entry(client, db, locus_tag, protein_alignment_id = None):
-    
+
     cgd_infos = db['annotations'].find_one({'locus_tag': locus_tag})
     if cgd_infos:
         print locus_tag, "already stored"
@@ -191,14 +209,14 @@ def parse_cgd_entry(client, db, locus_tag, protein_alignment_id = None):
         if text == "Standard Name":
             cgd_infos['standard_name'] = td.next_sibling.next_sibling.get_text("|").split("|")[0]
         elif text == "Systematic Name, Reference Strain":
-            """ 
+            """
             To eliminate redundancy with the locus tags in the Candida albicans MongoDB
             For example: Systematic Name 'C1_01530C_A' = Assembly 19/21 Identifier 'orf19.3341'
             """
             if locus_tag.startswith('orf') and db.name == 'Candida_albicans_SC5314':
                 locus_tag = td.next_sibling.next_sibling.get_text().split()[0]
                 cgd_infos['locus_tag'] = locus_tag
-                cgd_infos['source'] = 'db:cgd:%s'%locus_tag 
+                cgd_infos['source'] = 'db:cgd:%s'%locus_tag
                 cgd_annotation = db['annotations'].find_one({'locus_tag': locus_tag})
                 if cgd_annotation:
                     print locus_tag, "already stored"
@@ -238,7 +256,7 @@ def parse_cgd_entry(client, db, locus_tag, protein_alignment_id = None):
                 http_link = a.get('href')
                 if re.search('goid=\d+$', http_link):
                     go_definition = a.get_text().strip()
-                    if 'unknown' in a.next_sibling.strip(): 
+                    if 'unknown' in a.next_sibling.strip():
                         go_definition = a.next_sibling.strip().split(' (')[0]
                     go_terms ["GO:%07u"%int(http_link.split('goid=')[1])] = "%s:%s"%(go_types[text], go_definition)
             cgd_infos['go_annotations'] = go_terms
@@ -287,7 +305,7 @@ def parse_cgd_entry(client, db, locus_tag, protein_alignment_id = None):
             start = feature_type.find_next('td', text=True).find_next('td', text=True).find_next('td', text=True).find_next('td', text=True).find_next(text=True)
             end = start.find_next('td', text=True).find_next('td', text=True).find_next(text=True)
             coordinates = features.get(feature_type, [])
-            coordinates.append([int(start.replace(',','')), int(end.replace(',',''))] if cgd_infos['genomicStrand'] == '+' else [int(end.replace(',','')), int(start.replace(',',''))]) 
+            coordinates.append([int(start.replace(',','')), int(end.replace(',',''))] if cgd_infos['genomicStrand'] == '+' else [int(end.replace(',','')), int(start.replace(',',''))])
             if cgd_infos['genomicStrand'] == '-':
                 coordinates = sorted(coordinates, key=lambda l: l[0])
             features[feature_type] = coordinates
@@ -306,6 +324,6 @@ def parse_cgd_entry(client, db, locus_tag, protein_alignment_id = None):
     return cgd_infos['_id']
 
 if __name__ == '__main__':
-
+    dump_data()
     create_databases()
     import_cgd()
