@@ -25,7 +25,7 @@ def dump_data():
     dirname = os.path.abspath(os.path.dirname(__file__))+'/../data'
     if not os.path.exists(dirname):
         #we create the data dir
-        pass
+        print "dir not exist"
     species = ['Candida_glabrata_CBS_138'] #the species we're interested in
     for s in species:
         if not os.path.exists(dirname+'/'+s):
