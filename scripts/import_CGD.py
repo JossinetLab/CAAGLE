@@ -16,10 +16,7 @@ You can run the program with this command-line:
 
 def dump_data():
     """
-    This function recovers from the database GRYC (http://www.igenolevures.org) all the data necessary to construct the CAGGLE DB (except for C. dubliniensis which is recovered from NCBI). It will produce one directory per species. In each directory, it will dump the data in these files:
-    - sequences.fasta: genomic sequences
-    - proteins.fasta: protein sequences.
-    For the species C. glabrata, this script will also produce a file named locus_tag.txt. This file will be used for the next step (see function import_cgd())
+    This function recovers from the databases GRYC (for the Nakaseomyces, http://www.igenolevures.org) and from the CGD (for all the other species, http://www.candidagenome.org/) all the data necessary to construct the CAGGLE DB. It will produce one directory per species. In each directory, it will dump the genomic sequences in a file named sequences.fasta. For the Nakaseomyces, it will also produce a file named proteins.fasta. And for the species C. glabrata, this script will also produce a file named locus_tag.txt. This file will be used for the next step (see function import_cgd())
     """
 
     dirname = os.path.abspath(os.path.dirname(__file__))+'/../data'
