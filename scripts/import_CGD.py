@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-import os, sys, re, urllib, urllib2
-from pyrna.parsers import parse_fasta
+import os, sys, re, urllib, urllib2, gzip
+from pyrna.parsers import parse_fasta, to_fasta
 from pyrna.features import Molecule
 from pymongo import MongoClient
 from bson import ObjectId
@@ -11,24 +11,98 @@ from bs4 import BeautifulSoup
 COMMAND-LINE
 ------------
 You can run the program with this command-line:
-./construct_db.py
+./import_CGD_test.py
 """
 
 def dump_data():
+    """    
+    This function recovers all the data necessary to construct the CAGGLE DB:
+        - from the databases GRYC (for the Nakaseomyces, http://www.igenolevures.org) and
+        - from the CGD (for all the other species, http://www.candidagenome.org/) 
+    It will produce one directory per species. In each directory, it will dump the genomic sequences in a file named sequences.fasta. 
+    For the Nakaseomyces, it will also produce a file named proteins.fasta.
+    And for the species C. glabrata, this script will also produce a file named locus_tag.txt. This file will be used for the next step (see function import_cgd())
     """
-    This function recovers from the databases GRYC (for the Nakaseomyces, http://www.igenolevures.org) and from the CGD (for all the other species, http://www.candidagenome.org/) all the data necessary to construct the CAGGLE DB. It will produce one directory per species. In each directory, it will dump the genomic sequences in a file named sequences.fasta. For the Nakaseomyces, it will also produce a file named proteins.fasta. And for the species C. glabrata, this script will also produce a file named locus_tag.txt. This file will be used for the next step (see function import_cgd())
-    """
-
     dirname = os.path.abspath(os.path.dirname(__file__))+'/../data'
     if not os.path.exists(dirname):
-        #we create the data dir
-        print "dir not exist"
-    species = ['Candida_glabrata_CBS_138'] #the species we're interested in
-    for s in species:
-        if not os.path.exists(dirname+'/'+s):
-            #we create the species dir
-            pass
-        #now we recover and dump the data in this dir
+        # we create the data directory
+        os.makedirs(dirname)
+    # the species we're interested in
+    species_dict = {
+                    'Candida_glabrata_CBS_138': ['C_glabrata_CBS138'],
+                    'Nakaseomyces_bacillisporus_CBS_7720': ['NABA0S', '01', 37],
+                    'Nakaseomyces_bracarensis_CBS_10154': ['CABR0S', '01', 40],
+                    'Nakaseomyces_castellii_CBS_4332': ['CACA0S', '01', 36],
+                    'Nakaseomyces_delphensis_CBS_2170': ['NADE0S', '01', 30],
+                    'Nakaseomyces_nivariensis_CBS_9983': ['CANI0S', '01', 29],
+                    'Candida_albicans_SC5314': ['C_albicans_SC5314'],
+                    'Candida_parapsilosis_CDC317': ['C_parapsilosis_CDC317'],
+                    'Candida_dubliniensis_CD36': ['C_dubliniensis_CD36']
+                    }
+    candida = ['Candida_glabrata_CBS_138', 'Candida_albicans_SC5314', 'Candida_parapsilosis_CDC317', 'Candida_dubliniensis_CD36']
+                  
+    for item in species_dict.iteritems():
+        species = item[0]
+        data_path = dirname+'/'+species
+        file_ids = item[1]
+        if species not in candida:# we generate the list of chromosome sequence IDs for the Nakaseomyces species
+            sequence_ids = []
+            for n in range(file_ids[2]):
+                sequence_ids.append(file_ids[0]+"%02u"%(int(file_ids[1])+n))
+            file_ids = sequence_ids
+
+        if not os.path.exists(data_path):
+            # we create the species directory
+            os.makedirs(data_path)
+        # we recover and dump the data in this directory
+        if species in candida:
+            if species == 'Candida_albicans_SC5314':
+                url = "http://www.candidagenome.org/download/sequence/%s/Assembly22/current/%s_A22_current_chromosomes.fasta.gz"%(file_ids[0], file_ids[0])
+            else:
+                url = "http://www.candidagenome.org/download/sequence/%s/current/%s_current_chromosomes.fasta.gz"%(file_ids[0], file_ids[0])
+            response = urllib.urlopen(url)
+            outfile_content = str(response.read())
+            response.close()
+            gz_file_name = url.split('/')[-1]
+            with open("%s/%s"%(data_path, gz_file_name), 'w') as fh:
+                fh.write(outfile_content)
+            with gzip.open("%s/%s"%(data_path, gz_file_name), 'rb') as fh:
+                file_content = fh.read()
+            os.remove("%s/%s"%(data_path, gz_file_name))
+            with open("%s/%s"%(data_path, 'sequences.fasta'), 'w') as fh:
+                fh.write(file_content)
+
+            if species == 'Candida_glabrata_CBS_138':
+                outfile_content = ""
+                for string in ['orf_genomic', 'other_features_genomic']:
+                    url = "http://www.candidagenome.org/download/sequence/%s/current/%s_current_%s.fasta.gz"%(file_ids[0], file_ids[0], string)
+                    response = urllib.urlopen(url)
+                    outfile_content += str(response.read())
+                    response.close()
+                    gz_file_name = url.split('/')[-1]
+                    with open("%s/%s"%(data_path, gz_file_name), 'w') as fh:
+                        fh.write(outfile_content)
+                    with gzip.open("%s/%s"%(data_path, gz_file_name), 'rb') as fh:
+                        file_content = fh.read()
+                    os.remove("%s/%s"%(data_path, gz_file_name))
+                    with open("%s/%s"%(data_path, 'locus_tags.txt'), 'w') as fh:
+                        dna_molecules = parse_fasta(file_content, 'DNA')
+                        for d in dna_molecules:
+                            fh.write("%s\n"%d.name.split()[0])            
+        else:# Nakaseomyces
+            match = re.compile('^([A-Za-z]+_[A-Za-z]+)_(.+)$').search(species)
+            if match:
+                for file_type in [['Fasta', 'sequences.fasta'], ['CDSpro/', 'proteins.fasta']]:
+                    outfile_content = ""
+                    for file_id in file_ids:
+                        url = "http://gryc.inra.fr/storedData/download/%s/%s/%s/%s.%s"%(match.group(1), match.group(2), file_type[0], file_id, 'fsa')
+                        response = urllib.urlopen(url)
+                        outfile_content += str(response.read())
+                        response.close()
+                        with open("%s/%s"%(data_path, file_type[1]), 'w') as fh:
+                            fh.write(outfile_content)
+
+    print "The file downloading is done."
 
 def create_databases():
     """
@@ -56,8 +130,7 @@ def create_databases():
 
     dirname = os.path.abspath(os.path.dirname(__file__))+'/../data'
 
-    print dirname
-    pattern = re.compile('^BN\d{3,3}(_\w{4,4}\ds\d\d)e.+$')
+    pattern = re.compile('^BN\d{3,3}_(\w{4,4}\ds\d\d)e.+$')
 
     for species in os.listdir(dirname):
         if os.path.isdir("%s/%s"%(dirname, species)):
@@ -69,7 +142,7 @@ def create_databases():
                         client[species]['genomes'].insert(
                             {
                                 '_id': str(ObjectId()),
-                                'name': d.name,
+                                'name': d.name.split()[0],
                                 'sequence': d.sequence
                             }
                         )
@@ -91,7 +164,7 @@ def create_databases():
                                 }
                         match = pattern.search(tokens[0])
                         if match:
-                            infos['genomeName'] = match.group(1)
+                            infos['genomeName'] = match.group(1).replace('s', 'S')
                             genome = client[species]['genomes'].find_one({'name': infos['genomeName']})
                             if genome:
                                 infos['genome'] = genome['_id']+'@genomes'
@@ -99,7 +172,8 @@ def create_databases():
                             print "Warning: locus tag %s has no genome name!"%tokens[0]
                         client[species]['annotations'].insert(infos)
 
-    client.disconnect()
+    client.close()
+    print "The database creation is done."
 
 def import_cgd():
     """
@@ -134,12 +208,12 @@ def import_cgd():
 
     db = client['Candida_glabrata_CBS_138']
 
-    dirname = os.path.abspath(os.path.dirname(__file__))
+    dirname = os.path.abspath(os.path.dirname(__file__))+'/../data'
     with open("%s/Candida_glabrata_CBS_138/locus_tags.txt"%dirname) as h:
         for locus_tag in h.readlines():
             parse_cgd_entry(client, db, locus_tag.strip())# parse_cgd_entry() is a recursive function
 
-    client.disconnect()
+    client.close()
 
 def parse_cgd_entry(client, db, locus_tag, protein_alignment_id = None):
 
@@ -206,7 +280,7 @@ def parse_cgd_entry(client, db, locus_tag, protein_alignment_id = None):
         elif text == "Systematic Name, Reference Strain":
             """
             To eliminate redundancy with the locus tags in the Candida albicans MongoDB
-            For example: Systematic Name 'C1_01530C_A' = Assembly 19/21 Identifier 'orf19.3341'
+            For example: Systematic Name 'C1_01530C_A' = Assembly 19/21 file_id 'orf19.3341'
             """
             if locus_tag.startswith('orf') and db.name == 'Candida_albicans_SC5314':
                 locus_tag = td.next_sibling.next_sibling.get_text().split()[0]
@@ -263,25 +337,8 @@ def parse_cgd_entry(client, db, locus_tag, protein_alignment_id = None):
                 external_links.append(http_link)
             cgd_infos["external_links"] = external_links
 
-    candida_chromosomes = {
-                    'ChrA_C_glabrata_CBS138': 'NC_005967',
-                    'ChrB_C_glabrata_CBS138': 'NC_005968',
-                    'ChrC_C_glabrata_CBS138': 'NC_006026',
-                    'ChrD_C_glabrata_CBS138': 'NC_006027',
-                    'ChrE_C_glabrata_CBS138': 'NC_006028',
-                    'ChrF_C_glabrata_CBS138': 'NC_006029',
-                    'ChrG_C_glabrata_CBS138': 'NC_006030',
-                    'ChrH_C_glabrata_CBS138': 'NC_006031',
-                    'ChrI_C_glabrata_CBS138': 'NC_006032',
-                    'ChrJ_C_glabrata_CBS138': 'NC_006033',
-                    'ChrK_C_glabrata_CBS138': 'NC_006034',
-                    'ChrL_C_glabrata_CBS138': 'NC_006035',
-                    'ChrM_C_glabrata_CBS138': 'NC_006036',
-                    'mito_C_glabrata_CBS138': 'NC_004691'
-                    }
-
     genomes = []
-    for genome in db['genomes'].find(timeout = False):
+    for genome in db['genomes'].find(no_cursor_timeout = True):# timeout = False if another version of pymongo is used
         dna_molecule = Molecule(name = genome['name'])
         dna_molecule.id = genome['_id']
         dna_molecule.sequence = genome['sequence']
@@ -291,7 +348,7 @@ def parse_cgd_entry(client, db, locus_tag, protein_alignment_id = None):
     cgd_infos['genomicStrand'] = '-' if 'Crick' in seq_info_text else '+'
     seq_info_list = seq_info_text.split("|")
     index = seq_info_list.index('GBrowse')
-    cgd_infos['genomeName'] = candida_chromosomes[seq_info_list[index-2].split(':')[0]] if db.name == 'Candida_glabrata_CBS_138' else seq_info_list[index-2].split(':')[0]
+    cgd_infos['genomeName'] = seq_info_list[index-2].split(':')[0]
 
     features = {}
     for td in soup.find(id="LSPlocation").find_all("td", text=True):

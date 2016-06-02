@@ -11,8 +11,6 @@ import purge_dir, purge_dir_blastdb
 from Bio import AlignIO
 
 """
---Version of March 22, 2016--
-
 COMMAND-LINE
 ------------
 You can run the program with this command-line:
@@ -261,14 +259,14 @@ def hmm():
         cgd_dict[species] = cgd_molecules
 
     ### CREATION OF FORMATTED BLAST DATABASES FROM PROTEINS OF THE NAKASEOMYCES SPECIES ###
-    nakaseo_dbs = ['Candida_bracarensis', 'Candida_castellii', 'Candida_nivariensis', 'Nakaseomyces_bacillisporus', 'Nakaseomyces_delphensis']
+    nakaseo_dbs = ['Nakaseomyces_bracarensis_CBS_10154', 'Nakaseomyces_castellii_CBS_4332', 'Nakaseomyces_nivariensis_CBS_9983', 'Nakaseomyces_bacillisporus_CBS_7720', 'Nakaseomyces_delphensis_CBS_2170']
     nakaseo_dict = {}
     for species in nakaseo_dbs:
         nakaseo_molecules = []
         for annotation in client[species]['annotations'].find(timeout = False):
             dna = DNA(name=annotation['locus_tag'], sequence=annotation['translation'])
             dna.id = annotation['_id']
-            dna.source = annotation['source'] # for example: "db:gryc:Candida_bracarensis"
+            dna.source = annotation['source'] # for example: "db:gryc:Candida_bracarensis_CBS_10154"
             nakaseo_molecules.append(dna)
         blast = Blast(target_molecules=nakaseo_molecules)
         blast.format_db(is_nucleotide=False) # use formatdb of RNA_algo/blast-2.2.26 (not Tools/ncbi-blast-2.2.29+)
