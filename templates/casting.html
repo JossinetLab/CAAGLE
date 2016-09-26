@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Caagle</title>
+
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+
+    <!-- Bootstrap Core CSS -->
+    <link href="static/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="static/css/bootstrap-table.css" rel="stylesheet">
+    <link href="static/css/bootstrap-select.css" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="static/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+
+    <!-- Custom CSS -->
+    <link href="static/css/modern-business.css" rel="stylesheet">
+    <link href="static/css/custom.css" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="index.html">Caagle</a>
+            </div>
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li>
+                        <a href="casting.html">CASTING</a>
+                    </li>
+                    <li>
+                        <a href="#">QuantNet</a>
+                    </li>
+                    <li>
+                        <a href="#">Browser</a>
+                    </li>
+                    <li>
+                        <a href="about.html">About</a>
+                    </li>
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container -->
+    </nav>
+
+    <!-- Page Content -->
+    <div class="container">
+
+        <!-- Page Heading/Breadcrumbs -->
+        <div class="row">
+            <div class="col-lg-12">
+<!--                 <h1 class="page-header">Casting
+                    <small>Cas9 targets in <i>Candida</i> genomes</small>
+                </h1> -->
+<!--                 <h1 class="page-header">CasTinG
+                    <small>Cas9 Targets in <i>Candida</i> Genomes</small>
+                </h1> -->
+<!--                 <h1 class="page-header">CasTING
+                    <small>Cas9 Targets IN <i>Candida</i> Genomes</small>
+                </h1> -->
+                <h1 class="page-header"><span class="acronym">CASTING</span>
+                    <small><span class="acronym">CAS</span>9 <span class="acronym">T</span>argets <span class="acronym">IN</span> <span class="acronym">G</span>enomes</small>
+                </h1>
+<!--                 <h1 class="page-header">CASTING
+                    <small>Cas9 Targets IN <i>Candida</i> Genomes</small>
+                </h1> -->
+                <ol class="breadcrumb">
+                    <li><a href="index.html">Home</a>
+                    </li>
+                    <li class="active">CASTING</li>
+                </ol>
+            </div>
+        </div>
+        <!-- /.row -->
+
+        <!-- Content Row -->
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel-group" id="accordion">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseOne">What is CASTING?</a>
+                            </h4>
+                        </div>
+                        <div id="collapseOne" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <span class="acronym">CASTING</span> stands for <span class="acronym">CAS</span>9 <span class="acronym">T</span>argets <span class="acronym">IN</span> <span class="acronym">G</span>enomes. It is an online tool providing gRNAs sequences for CRISPR-Cas9 experiments in <i>Candida glabrata</i> species.
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.panel -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">How does it work?</a>
+                            </h4>
+                        </div>
+                        <div id="collapseTwo" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <span class="acronym">CASTING</span>'s algorithm is based on a set of statements derived from very recent CRISPR-Cas9 studies. In a nutshell, these studies indicate that an efficient guide RNA (gRNA):</br>
+                                <b>has to be followed by a so-called PAM (Protospacer Adjacent Motif) whose canonical sequence is 5'-NGG or 5'-NAG (<a href="http://www.nature.com/nbt/journal/v31/n3/full/nbt.2508.html" target="_blank">Jiang et al., 2013</a>)</b></br>
+                                <b>should not contain any "repeat sequence" (<a href="http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0100448" target="_blank">Xie et al., 2014</a>)</b></br>
+                                <b>should have a GC-content between 35% and 75%</b></br></br>
+                                All the gRNAs which follow these statements are then realigned on the whole genome of <i>Candida glabrata</i> with <a href="http://www-personal.umich.edu/~jianghui/seqmap/" target="_blank">SeqMap</a>, a bioinformatic tool designed to align short sequences very fast. All the alignment sites founded by SeqMap are called "off-target" sites. As these off-targets induce noise in the CRIPR-Cas9 experiment, the lower number of off-targets, the better your experiment will work.</br></br>
+                                As a last step, we use the gRNA activity predictive model provided by <a href='http://www.nature.com/nbt/journal/v32/n12/full/nbt.3026.html' target='_blank'>Doench et al.</a> to calculate a score for each gRNA. The closer to 100 this score will be, the more the associated gRNA will be efficient in cutting your region of interest.
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.panel -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapseThree">How do I use it?</a>
+                            </h4>
+                        </div>
+                        <div id="collapseThree" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                Just select your region of interest, click on "SUBMIT!", and wait for your gRNAs. You can even export them in six different formats including CSV and Excel. You're welcome.
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.panel -->
+                </div>
+                <!-- /.panel-group -->
+                
+                <div>
+                    Enough talk. Now select your region of interest...</br></br>
+                </div>
+
+                    <form method=post action="/">
+                        <div class="panel-group" id="accordion2">
+                            <!-- /.panel -->
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h4 class="panel-title">
+                                        <a data-toggle="collapse" data-parent="#accordion2" href="#collapseFour">
+                                        By Gene Name</a>
+                                    </h4>
+                                </div>
+                                <div id="collapseFour" class="panel-collapse collapse in">
+                                    <div id="gene-name-div" class="panel-body autocomplete-suggestions">
+                                        <input class="form-control form-control-input" id="gene-name" name="gene-name" placeholder="Search..." type="text" style="width:179px;">  <i class="fa fa-question-circle" title="Gene name" data-popover="true" data-toggle="popover" data-trigger="hover click" data-html=true data-content="Name has to match one of the 'Standard Name', 'Locus Tag' or 'Alias' fields provided by the <a href='http://www.candidagenome.org/' target='_blank'>Candida Genome Database.</a>"></i></br>
+                                    <div class='interactive-examples'>Examples: <a href='#' id="example-ade2-gene-name">ADE2</a> <a href='#' id="example-yps11-gene-name">YPS11</a><br><a href='#' id="gene-name-clear">Clear</a></div>
+                                </div>
+                              </div>
+                            </div>
+                            <!-- /.panel -->
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h4 class="panel-title">
+                                      <a data-toggle="collapse" data-parent="#accordion2" href="#collapseFive">
+                                      By Coordinates</a>
+                                    </h4>
+                                </div>
+                                <div id="collapseFive" class="panel-collapse collapse">
+                                    <div class="panel-body">
+                                        <label for="chromosome">Chromosome</label>
+                                        <select id="chromosome" name="chromosome" data-width="auto">
+                                            <option value="chr_A" selected>A</option>
+                                            <option value="chr_B">B</option>
+                                            <option value="chr_C">C</option>
+                                            <option value="chr_D">D</option>
+                                            <option value="chr_E">E</option>
+                                            <option value="chr_F">F</option>
+                                            <option value="chr_G">G</option>
+                                            <option value="chr_H">H</option>
+                                            <option value="chr_I">I</option>
+                                            <option value="chr_J">J</option>
+                                            <option value="chr_K">K</option>
+                                            <option value="chr_L">L</option>
+                                            <option value="chr_M">M</option>
+                                            <option value="chr_MT">MT</option>
+                                        </select><br>
+                                        <form name="userForm">
+                                        <div class="form-group" ng-class="{ 'has-error': userForm.start.$invalid }">
+                                            <input class="form-control form-control-input" id="genomic-start" name="genomic-start" placeholder="Start" type="number" value="" style="width:179px;" ng-model="user.start" required><br>
+                                        </div>
+                                        <div class="form-group" ng-class="{ 'has-error': userForm.end.$invalid }">
+                                            <input class="form-control form-control-input" id="genomic-end" name="genomic-end" placeholder="End" type="number" value="" style="width:179px;" ng-model="user.end" required><br>
+                                        </div>
+                                        </form>
+                                        <div class='interactive-examples'>Examples: <a href='#' id="example-ade2-coordinates">ADE2</a> <a href='#' id="example-yps11-coordinates">YPS11</a><br><a href='#' id="coordinates-clear">Clear</a></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- /.panel -->
+                            <div class="panel panel-default">
+                              <div class="panel-heading">
+                                <h4 class="panel-title">
+                                  <a data-toggle="collapse" data-parent="#accordion2" href="#collapseSix">
+                                  By Sequence</a>
+                                </h4>
+                              </div>
+                              <div id="collapseSix" class="panel-collapse collapse">
+                                <div class="panel-body">ACGT only.</br>
+                                  <textarea class="textarea form-control" id="sequence" name="sequence" placeholder="Paste your favorite sequence..." spellcheck="false" rows="8"></textarea>
+                                  <a href='#' id="sequence-clear">Clear</a></div>
+                              </div>
+
+                            </div>
+                            <div>
+                            <!-- <a class="button" type="button" id="advanced_button" value="Display advanced options" data-toggle="collapse" data-target="#advanced-options" style="margin-left"><br>Display advanced options</a> -->
+                            <br>
+                            <div id="advanced-options">
+                                <select id="strand" name="strand" data-width="75px">
+                                    <option value="strand_any" selected>Any</option>
+                                    <option value="strand_plus">+</option>
+                                    <option value="strand_minus">-</option>
+                                </select>
+                                <label for="strand">strand</label><br>
+                                <select id="pam" name="pam" data-width="75px">
+                                    <option value="pam_any">Any</option>
+                                    <option value="pam_ngg" selected>NGG</option>
+                                    <option value="pam_nag">NAG</option>
+                                </select>
+                                <label for="pam">PAM</label><br>
+                                <input class="form-control form-control-input" id="gc-content-min" name="gc-content-min" placeholder="35" type="text" value="" maxlength="3" size="3">
+                                <label for="gc-content-min">% GC-content Min</label><br>
+                                <input class="form-control form-control-input" id="gc-content-max" name="gc-content-max" placeholder="75" type="text" value="" maxlength="3" size="3">
+                                <label for="gc-content-max">% GC-content Max</label>
+                            </div>
+                                <br><br><a class="btn btn-default" href="#" id="submit">Submit!</a> <img src="static/img/ajax-loader.gif" id="img" class="hidden"  height="28" width="28" style="margin-left: 10px; margin-bottom: 4px"/>
+                            </div>
+                            
+
+                    
+                            </form>
+
+
+                            <div id='result' class='hidden'>
+                                <table id='table'>
+                                </table>
+                            </div>
+ 
+                            <br>* Number of off-targets with 1, 2, and 3 mismatches.
+
+                        </div>
+                    </form>
+            </div>
+            <!-- /.col-lg-12 -->
+        </div>
+        <!-- /.row -->
+
+        <hr>
+
+        <!-- Footer -->
+        <footer>
+            <div class="row">
+                <div class="col-lg-12">
+                    <p>"If you like Google, you'll love Caagle." &copy; 2016 Caagle</p>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- /.container -->
+
+    <!-- jQuery -->
+    <!-- <script src="static/js/jquery.js"></script> -->
+
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="static/js/bootstrap.min.js"></script>
+
+    <!-- tableExport -->
+    <script type="text/javascript" src="static/js/tableExport.js"></script>
+    <script type="text/javascript" src="static/js/jquery.base64.js"></script>
+    <script type="text/javascript" src="static/js/html2canvas.js"></script>
+    <script type="text/javascript" src="static/js/jspdf/libs/sprintf.js"></script>
+    <script type="text/javascript" src="static/js/jspdf/jspdf.js"></script>
+    <script type="text/javascript" src="static/js/jspdf/libs/base64.js"></script>
+
+    <!-- Bootstrap JS -->
+    <script src="static/js/bootstrap-editable.js"></script>
+    <script src="static/js/bootstrap-table.js"></script>
+    <script src="static/js/bootstrap-table-multiple-sort.js"></script>
+    <script src="static/js/bootstrap-table-editable.js"></script>
+    <script src="static/js/bootstrap-table-export.js"></script>
+    <script src="static/js/bootstrap-select.js"></script>
+    <script src="static/js/tableExport.js"></script> 
+    <script src="static/js/typeahead.jquery.js"></script> 
+
+    <script src="static/js/jquery.tablesorter.js"></script>
+    <script src="static/js/jquery.dataTables.js"></script>
+
+    <script type="text/javascript" src="static/js/jquery.tablesorter.js"></script>
+
+    <script src="http://code.angularjs.org/1.2.5/angular.js" data-semver="1.2.5" data-require="angular.js@1.2.5"></script>
+
+    <script type="text/javascript">
+        $(function() {
+            var availableTags = {{ data|safe }};
+            console.log(availableTags);
+            $( "#gene-name" ).autocomplete({
+              source: function(request, response) {
+                      var results = $.ui.autocomplete.filter(availableTags, request.term);
+                      response(results.slice(0, 10));
+                  }
+            });
+          });
+    </script>
+
+<!--     <script type="text/javascript">
+        var substringMatcher = function(strs) {
+          return function findMatches(q, cb) {
+            var matches, substringRegex;
+
+            // an array that will be populated with substring matches
+            matches = [];
+
+            // regex used to determine if a string contains the substring `q`
+            substrRegex = new RegExp(q, 'i');
+
+            // iterate through the pool of strings and for any string that
+            // contains the substring `q`, add it to the `matches` array
+            $.each(strs, function(i, str) {
+              if (substrRegex.test(str)) {
+                matches.push(str);
+              }
+            });
+
+            cb(matches);
+          };
+        };
+
+        var states = {{ data|safe }};
+
+        $('#gene-name-div .typeahead').typeahead({
+          hint: true,
+          highlight: true,
+          minLength: 1
+        },
+        {
+          name: 'states',
+          source: substringMatcher(states)
+        });
+    </script> -->
+
+    <script type="text/javascript">
+
+        
+        //********************************************* Submit button ********************************************
+
+        $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+
+        var region_type = "collapseFour"
+        $(function() {
+          $('.collapse').on('shown.bs.collapse', function (e) {
+                region_type = e.currentTarget.id;
+            })
+        })
+        $(function() {
+            $('a#submit').bind('click', 
+                function() {
+                    $.getJSON($SCRIPT_ROOT + '/crispr_form', {
+                        region_type: region_type,
+                        chromosome: $('#chromosome option:selected').text(),
+                        genomic_start: $('input[name="genomic-start"]').val(),
+                        genomic_end: $('input[name="genomic-end"]').val(),
+                        gene_name: $('input[name="gene-name"]').val(),
+                        sequence: $('textarea[name="sequence"]').val(),
+                        strand: $('#strand option:selected').text(),
+                        pam: $('#pam option:selected').text(),
+                        gc_min: $('input[name="gc-content-min"]').val(),
+                        gc_max: $('input[name="gc-content-max"]').val(),
+
+                },
+                // function(data){ 
+                //     $("#result").text(data.result);
+                //     if(data){
+                //         console.log(data)
+                //         var len = data.length;
+                //         var txt = "";
+                //         if(len > 0){
+                //                 $("#result").empty().append('\
+                //                     <table id="table" data-toggle="table" data-show-export="true" data-url="'+encodeURIComponent(JSON.stringify(data))+'">\
+                //                     <thead>\
+                //                         <tr>\
+                //                             <th data-field="doench_score_percent" rowspan="2" data-valign="middle">Score</th>\
+                //                             <th colspan="3">Off-targets</th>\
+                //                             <th data-field="sequence" rowspan="2" data-valign="middle">Sequence</th>\
+                //                             <th data-field="pamSequence" rowspan="2" data-valign="middle">PAM</th>\
+                //                             <th data-field="genomeName" rowspan="2" data-valign="middle">Chromosome</th>\
+                //                             <th data-field="genomicStart" rowspan="2" data-valign="middle">Start</th>\
+                //                             <th data-field="genomicEnd" rowspan="2" data-valign="middle">End</th>\
+                //                             <th data-field="genomicStrand" rowspan="2" data-valign="middle">Strand</th>\
+                //                         </tr>\
+                //                         <tr>\
+                //                             <th data-field="off_targets_1_mismatch">1</th>\
+                //                             <th data-field="off_targets_2_mismatch">2</th>\
+                //                             <th data-field="off_targets_3_mismatch">3</th>\
+                //                         </tr>\
+                //                     </thead>\
+                //                     <table>');
+
+                //                 for(var i=0;i<len;i++){
+                //                     console.log(data)
+                //                     if(data[i].doench_score){
+                //                         $("#table").append("<tr><td>"+data[i].doench_score_percent+"</td><td>"+data[i].off_targets_1_mismatch+"</td><td>"+data[i].off_targets_2_mismatch+"</td><td>"+data[i].off_targets_3_mismatch+"</td><td>"+data[i].sequence+"</td><td>"+data[i].pamSequence+"</td><td>"+data[i].genomeName+"</td><td>"+data[i].genomicPositions[0]+"</td><td>"+data[i].genomicPositions[1]+"</td><td>"+data[i].genomicStrand+"</td></tr>");
+                //                     }
+                //                 }
+
+                //                 $("#result").removeClass("hidden");
+
+                //         }
+                //         else {
+                //             $("#dvData").removeClass("hidden");
+                //             $("#result").empty().append("<p>No results!</p>").removeClass("hidden");
+                //         }
+                //     }
+                // });
+
+                function(data){ 
+                    document.getElementById("result").innerHTML = '<table id="table" data-toggle="table" data-show-export="true" data-show-multi-sort="true"></table>';
+                    $('#table').bootstrapTable({
+                        columns: [{
+                            field: 'doench_score_percent',
+                            title: 'Score'
+                        },
+                        {
+                            field: 'off_targets_1_mismatch',
+                            title: '1mm*'
+                        },
+                        {
+                            field: 'off_targets_2_mismatch',
+                            title: '2mm*'
+                        },
+                        {
+                            field: 'off_targets_3_mismatch',
+                            title: '3mm*'
+                        },
+                        {
+                            field: 'sequence',
+                            title: 'Sequence'
+                        },
+                        {
+                            field: 'pamSequence',
+                            title: 'PAM'
+                        },
+                        {
+                            field: 'gcContent',
+                            title: 'GC%'
+                        },
+                        {
+                            field: 'genomeName',
+                            title: 'Chromosome'
+                        },
+                        {
+                            field: 'genomicStart',
+                            title: 'Start'
+                        },
+                        {
+                            field: 'genomicEnd',
+                            title: 'End'
+                        },
+                        {
+                            field: 'genomicStrand',
+                            title: 'Strand'
+                        }],
+                        data: data
+                    });
+
+                    $("#result").removeClass("hidden");
+                });
+
+                // function(data){ 
+                //     var len = data.length;
+                //     for(var i=0;i<len;i++){
+                //         var $tr = $('<tr/>');
+                //             $tr.append($('<td/>').html(data[i].doench_score_percent));
+                //             $tr.append($('<td/>').html(data[i].sequence));
+                //             $tr.append($('<td/>').html(data[i].pamSequence));
+                //             $tr.append($('<td/>').html(data[i].genomeName));
+                //             $tr.append($('<td/>').html(data[i].genomicStart));
+                //             $tr.append($('<td/>').html(data[i].genomicEnd));
+                //             $tr.append($('<td/>').html(data[i].genomicStrand));
+                //             $('#table tr:last').before($tr);
+                //             $("#table").tablesorter();
+                //     };
+                //     $("#result").removeClass("hidden");
+                    
+                // });
+                return false;
+            });
+
+            $(document).on({
+                ajaxStart: function() { $("#img").removeClass("hidden");  },
+                ajaxStop: function() { $("#img").addClass("hidden"); }    
+            }); 
+
+        });
+
+        //*************************************** Interactive examples **********************************
+
+        $(function() {
+            $('.interactive-examples a#example-ade2-coordinates').click(function() {
+                $('#chromosome').val("chr_K");
+                $('#genomic-start').val("1007408");
+                $('#genomic-end').val("1009722");
+                return false;
+            });
+            $('.interactive-examples a#example-yps11-coordinates').click(function() {
+                $('#chromosome').val("chr_E");
+                $('#genomic-start').val("188177");
+                $('#genomic-end').val("190021");
+                return false;
+            });
+            $('.interactive-examples a#example-ade2-gene-name').click(function() {
+                $('#gene-name').val("ADE2");
+                return false;
+            });
+            $('.interactive-examples a#example-yps11-gene-name').click(function() {
+                $('#gene-name').val("YPS11");
+                return false;
+            });
+            $('.interactive-examples a#example-clear').click(function() {
+                $('#chromosome').val("chr_A");
+                $('#genomic-start').val("");
+                $('#genomic-end').val("");
+                $('#gene-name').val("");
+                $('#sequence').val("");
+                return false;
+            });
+            $('a#gene-name-clear').click(function() {
+                $('#gene-name').val("");
+                return false;
+            });
+            $('a#sequence-clear').click(function() {
+                $('#sequence').val("");
+                return false;
+            });
+            $('a#coordinates-clear').click(function() {
+                $('#chromosome').val("chr_A");
+                $('#genomic-start').val("");
+                $('#genomic-end').val("");
+                return false;
+            });
+        });
+
+        //******************************************* Tooltip ****************************************************
+
+        var originalLeave = $.fn.popover.Constructor.prototype.leave;
+        $.fn.popover.Constructor.prototype.leave = function(obj){
+          var self = obj instanceof this.constructor ?
+            obj : $(obj.currentTarget)[this.type](this.getDelegateOptions()).data('bs.' + this.type)
+          var container, timeout;
+
+          originalLeave.call(this, obj);
+
+          if(obj.currentTarget) {
+            container = $(obj.currentTarget).siblings('.popover')
+            timeout = self.timeout;
+            container.one('mouseenter', function(){
+              //We entered the actual popover – call off the dogs
+              clearTimeout(timeout);
+              //Let's monitor popover content instead
+              container.one('mouseleave', function(){
+                $.fn.popover.Constructor.prototype.leave.call(self, self);
+              });
+            })
+          }
+        };
+
+        $('body').popover({ selector: '[data-popover]', trigger: 'click hover', placement: 'right', delay: {show: 50, hide: 400}});
+
+        $("#gene-name").keyup(function(event){
+            if(event.keyCode == 13){
+                $("#submit").click();
+            }
+        });
+
+        $("#genomic-start").keyup(function(event){
+            if((event.keyCode == 13) && ($.trim($("#genomic-end").val()))){
+                $("#submit").click();
+            }
+            else if(event.keyCode == 13){
+                $("#genomic-end")
+            }
+        });
+
+        $("#genomic-end").keyup(function(event){
+            if((event.keyCode == 13) && ($.trim($("#genomic-start").val()))){
+                $("#submit").click();
+            }
+        });
+
+        $("#sequence").keyup(function(event){
+            if(event.keyCode == 13){
+                $("#submit").click();
+            }
+        });
+
+
+        jQuery.extend(jQuery.validator.messages, {
+            required: "This field is required.",
+            remote: "Please fix this field.",
+            email: "Please enter a valid email address.",
+            url: "Please enter a valid URL.",
+            date: "Please enter a valid date.",
+            dateISO: "Please enter a valid date (ISO).",
+            number: "Please enter a valid number.",
+            digits: "Please enter only digits.",
+            creditcard: "Please enter a valid credit card number.",
+            equalTo: "Please enter the same value again.",
+            accept: "Please enter a value with a valid extension.",
+            maxlength: jQuery.validator.format("Please enter no more than {0} characters."),
+            minlength: jQuery.validator.format("Please enter at least {0} characters."),
+            rangelength: jQuery.validator.format("Please enter a value between {0} and {1} characters long."),
+            range: jQuery.validator.format("Please enter a value between {0} and {1}."),
+            max: jQuery.validator.format("Please enter a value less than or equal to {0}."),
+            min: jQuery.validator.format("Please enter a value greater than or equal to {0}.")
+        });
+
+    </script>
+
+</body>
+
+</html>

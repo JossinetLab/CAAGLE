@@ -1,0 +1,323 @@
+/* Custom Styles */
+
+.intro {
+    display: table;
+    width: 100%;
+    height: auto;
+    padding: 100px 0;
+    text-align: center;
+    color: #fff;
+    background: linear-gradient(
+      rgba(0, 0, 0, 0.5), 
+      rgba(0, 0, 0, 0.5)
+    ),
+      url(../img/candida_tropicalis_YC466.jpg) no-repeat bottom center scroll;
+    background-color: #000;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    background-size: cover;
+    -o-background-size: cover;
+}
+
+.intro .intro-body {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.intro .intro-body .brand-heading {
+    font-size: 40px;
+}
+
+.intro .intro-body .intro-text {
+    font-size: 18px;
+}
+
+@media(min-width:768px) {
+    .intro {
+        height: 100%;
+        padding: 0;
+    }
+
+    .intro .intro-body .brand-heading {
+        font-size: 100px;
+    }
+
+    .intro .intro-body .intro-text {
+        font-size: 26px;
+    }
+}
+
+@-webkit-keyframes pulse {    
+    0% {
+        -webkit-transform: scale(1);
+        transform: scale(1);
+    }
+
+    50% {
+        -webkit-transform: scale(1.2);
+        transform: scale(1.2);
+    }
+
+    100% {
+        -webkit-transform: scale(1);
+        transform: scale(1);
+    }
+}
+
+@-moz-keyframes pulse {    
+    0% {
+        -moz-transform: scale(1);
+        transform: scale(1);
+    }
+
+    50% {
+        -moz-transform: scale(1.2);
+        transform: scale(1.2);
+    }
+
+    100% {
+        -moz-transform: scale(1);
+        transform: scale(1);
+    }
+}
+
+.content-section {
+    padding-top: 100px;
+}
+
+#map {
+    width: 100%;
+    height: 200px;
+    margin-top: 100px;
+}
+
+@media(min-width:767px) {
+    .content-section {
+        padding-top: 250px;
+    }
+
+    .download-section {
+        padding: 100px 0;
+    }
+
+    #map {
+        height: 400px;
+        margin-top: 250px;
+    }
+}
+
+.btn {
+    margin: 0 0 5px
+}
+
+.btn {
+    text-transform: uppercase;
+    font-family: Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    -webkit-transition: all .3s ease-in-out;
+    -moz-transition: all .3s ease-in-out;
+    transition: all .3s ease-in-out;
+}
+
+.btn-default,
+.btn-default:focus {
+    border: 1px solid #31BA22;
+    color: #208215;
+    background-color: transparent;
+}
+
+.btn-default:hover {
+    border: 1px solid #31BA22;
+    outline: 0;
+    color: #FFF;
+    background-color: #31BA22;
+}
+
+.btn-circle {
+    width: 70px;
+    height: 70px;
+    margin-top: 15px;
+    padding: 7px 16px;
+    border: 2px solid #fff;
+    border-radius: 100%!important;
+    font-size: 40px;
+    color: #fff;
+    background: 0 0;
+    -webkit-transition: background .3s ease-in-out;
+    -moz-transition: background .3s ease-in-out;
+    transition: background .3s ease-in-out;
+}
+
+.btn-circle:hover,
+.btn-circle:focus {
+    outline: 0;
+    color: #fff;
+    background: rgba(255,255,255,.1);
+}
+
+.btn-circle i.animated {
+    -webkit-transition-property: -webkit-transform;
+    -webkit-transition-duration: 1s;
+    -moz-transition-property: -moz-transform;
+    -moz-transition-duration: 1s;
+}
+
+.btn-circle:hover i.animated {
+    -webkit-animation-name: pulse;
+    -moz-animation-name: pulse;
+    -webkit-animation-duration: 1.5s;
+    -moz-animation-duration: 1.5s;
+    -webkit-animation-iteration-count: infinite;
+    -moz-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: linear;
+    -moz-animation-timing-function: linear;
+}
+
+
+
+table { 
+    width: 100%; 
+    border-collapse: collapse;
+}
+
+dl {
+    margin: 0 0 25px;
+    font-size: 18px;
+    line-height: 1.5;
+}
+
+.popover {
+    color: #696969;
+}
+
+.popover a {
+    color: #208215;
+}
+
+.popover a:focus,
+.popover a:hover {
+    color: #31BA22;
+    text-decoration: none;
+}
+
+tr {
+    font-family: Courier,"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+/* Zebra striping */
+tr:nth-child(even) {
+    background-color: #eee;
+}
+tr:nth-child(odd) {
+    background-color: #fff;
+}
+th { 
+    background: #696969; 
+    color: white; 
+    font-weight: bold; 
+}
+td, th { 
+    padding: 6px; 
+    border: 1px solid #ccc; 
+    text-align: left; 
+}
+
+label {
+    font-weight: normal;
+}
+
+b {
+    margin: 0 0 0px;
+    list-style: none;
+    text-align: justify;
+    padding: 0px;
+    margin: 0px;
+    font-weight: normal;
+}
+
+b:before {
+    content: "■   ";
+    color: #696969;
+}
+
+input, textarea {
+    font-family: courier;
+}
+
+input, select, textarea, button {
+    -moz-box-shadow:#31BA22;
+}
+
+.button, .selectRegion {
+    cursor:pointer;
+}
+
+label {
+    cursor: pointer;
+}
+
+::selection {
+  color: #fff;
+  background: #31BA22; /* WebKit/Blink Browsers */
+}
+::-moz-selection {
+  color: #fff;
+  background: #31BA22; /* Gecko Browsers */
+}
+
+.autocomplete-suggestions { white-space: nowrap; overflow: hidden; }
+
+.intro-text, .contact, .copyright {
+    text-align: center;
+}
+
+.icon-question-sign, .fa-question-circle {
+    color: #31BA22;
+}
+
+.panel-default >.panel-heading {
+    color: #696969;
+}
+
+.form-control {
+    width: 100%;
+    font-size: 18px;
+}
+
+.form-control-input {
+    min-width: 0;
+    width: 60px;
+    display: inline;
+    margin: 0 0 5px;
+}
+
+.form-control:focus {
+  border-color: #31BA22;
+  box-shadow: none;
+}
+
+a {
+    color: #208215;
+    -webkit-transition: all .2s ease-in-out;
+    -moz-transition: all .2s ease-in-out;
+    transition: all .2s ease-in-out;
+}
+
+a:focus,
+a:hover {
+    text-decoration: none;
+    color: #31BA22;
+}
+
+.no-records-found {
+    display: none;
+}
+
+.page-scroll:focus,
+.page-scroll:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+.acronym {
+    color: #208215;
+}
