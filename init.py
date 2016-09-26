@@ -6,7 +6,6 @@ from json import dumps
 import sys, os
 
 sys.path.append(os.path.abspath('/home/amarchand/Caagle_multi/scripts'))
-import crispr_tool
 
 app = Flask(__name__)
 
@@ -61,9 +60,9 @@ def about():
 
 @app.route('/crispr_form')
 def crisprform():
-
+    import crispr_tool
     result = None
-    
+
     region_type = request.args.get('region_type', None, type=str)
     print region_type
     search_mode = 'b'
@@ -116,7 +115,7 @@ def crisprform():
                         gcContent = record['gcContent']
                         if gcContent >= gc_min and gcContent <= gc_max:
                             pamSequence = record['pamSequence']
-                            if (pam_mode == 0 and pamSequence[1:] == 'GG') or (pam_mode == 1 and pamSequence[1:] == 'AG') or (pam_mode == 2 and pamSequence[2:] == 'G'): 
+                            if (pam_mode == 0 and pamSequence[1:] == 'GG') or (pam_mode == 1 and pamSequence[1:] == 'AG') or (pam_mode == 2 and pamSequence[2:] == 'G'):
                                 genomicStrand = record['genomicStrand']
                                 if (search_mode == 's' and genomicStrand == '+') or (search_mode == 'a' and genomicStrand == '-') or search_mode == 'b':
                                     result.append(record)
