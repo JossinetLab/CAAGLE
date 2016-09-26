@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 
-import os, re, shutil, commands
+import sys, os, re, shutil, commands, scipy.stats
 from pyrna.parsers import to_fasta
 from pyrna.features import DNA
 from pyrna.computations import Tool, Blast
 from pyrna import utils
 from pymongo import MongoClient
 from pandas import DataFrame
-import purge_dir, purge_dir_blastdb
 from Bio import AlignIO
+from bson import ObjectId
 
 """
 COMMAND-LINE
@@ -16,6 +16,10 @@ COMMAND-LINE
 You can run the program with this command-line:
 ./search_orthologs.py
 """
+
+class MyBlast(Blast):
+    def __init__(self, target_molecules, cache_dir):# cache_dir="/tmp" in the original class Blast
+        Blast.__init__(self, target_molecules, cache_dir)
 
 class Hmmer(Tool):
     def __init__(self, seqdb, cache_dir="/tmp"):
@@ -60,6 +64,7 @@ class Hmmer(Tool):
         - e_value
         - score (bit score)
         """
+        # print output
         hits=[]
         query_name = None
         target_name = None
@@ -106,51 +111,68 @@ class Muscle(Tool):
 
         self.fasta_sequences = fasta_file.name
 
-    def align(self):
+    def align(self, output_format=None):
         """
         Aligns multiple sequences using the MUSCLE algorithm. 
         """
-        return self.remove_header(commands.getoutput("cd %s ; muscle -in %s"%(self.cache_dir, self.fasta_sequences)))
+        format = ''#FASTA format
+        if output_format == "clustalw":
+            format = ' -clwstrict'
 
-    def realign(self, existing_msa, new_seqs=None):
+        return self.remove_header(commands.getoutput("cd %s ; muscle -in %s%s"%(self.cache_dir, self.fasta_sequences, format)))#IF HEADER
+
+    def realign(self, existing_msa, new_seqs=None, output_format=None):
         """
         Aligns a multiple sequence alignment with new sequence(s) using the MUSCLE algorithm.
         Command line: muscle -profile -in1 existing_aln.afa -in2 new_seqs.afa 
-        The output alignment will be at the CLUSTAL W format and will contain a CONSENSUS line. If the output format is FASTA, no consensus line ! 
+        The output alignment will be at the FASTA (by default) or CLUSTAL W format and will contain a CONSENSUS line. If the output format is FASTA, no consensus line ! 
         """
         tmp_dir = os.path.dirname(self.fasta_sequences)
         with open("%s/existing_msa.fasta"%tmp_dir, 'w+b') as existing_msa_file:
             existing_msa_file.write(existing_msa)
 
+        format = ''#FASTA format
+        if output_format == "clustalw":
+            format = ' -clwstrict '
+
         if new_seqs:
             with open("%s/new_seqs.fasta"%tmp_dir, 'w+b') as new_seqs_msa_file:
                 new_seqs_msa_file.write(new_seqs)
-            return self.remove_header(commands.getoutput("cd %s ; muscle -profile -clwstrict -in1 %s -in2 %s"%(self.cache_dir, existing_msa_file.name, new_seqs_msa_file.name)))
+            return self.remove_header(commands.getoutput("cd %s ; muscle -profile%s -in1 %s -in2 %s"%(self.cache_dir, format, existing_msa_file.name, new_seqs_msa_file.name)))
         else:
-            return self.remove_header(commands.getoutput("cd %s ; muscle -profile -clwstrict -in1 %s -in2 %s"%(self.cache_dir, existing_msa_file.name, self.fasta_sequences)))
+            return self.remove_header(commands.getoutput("cd %s ; muscle -profile%s -in1 %s -in2 %s"%(self.cache_dir, format, existing_msa_file.name, self.fasta_sequences)))
 
-    def remove_header(self, output):
+    def get_spscore(self):
+        spscore_output = commands.getoutput("cd %s ; muscle -spscore %s"%(self.cache_dir, self.fasta_sequences))
+        spscore = None
+        lines = spscore_output.split('\n')
+        for line in lines:
+            if line.startswith('File='):#'File=alignment.fsa;SP=18.97'
+                spscore = float(line.split('SP=')[1].strip())
+        return spscore
+
+    def remove_header(self, msa_output):
         """
-        Removes the header of a Muscle output at the format CLUSTAL W.
+        Removes the header of a Muscle output.
         """
-        new_output = []
+        msa_wo_header = []
         tag = False
-        lines = output.split('\n')
+        lines = msa_output.split('\n')
         for line in lines:
             if line.startswith(">") or line.startswith("CLUSTAL W (1.81) multiple sequence alignment") or line.startswith("MUSCLE (3.8) multiple sequence alignment"):
                 tag = True
             if tag:   
-                new_output.append(line)
-        return '\n'.join(new_output)    
+                msa_wo_header.append(line)
+        return '\n'.join(msa_wo_header)    
 
-def convert_msa_format(clustal_multiple_alignment, input_format, output_format):
+def convert_msa_format(input_msa, input_format, output_format):
     """
     Function that converts the format of a multiple sequence alignment (MSA).
     """
     path = "/tmp/"+utils.generate_random_name(7)
     os.mkdir(path)
-    with open("%s/msa.aln"%path, 'w+b') as clustal_file:
-        clustal_file.write(clustal_multiple_alignment)
+    with open("%s/msa.aln"%path, 'w+b') as msa_file:
+        msa_file.write(input_msa)
     input_infh = open("%s/msa.aln"%path, 'rU')
     output_outfh = open("%s/msa.fasta"%path, 'w')
     alignment = AlignIO.parse(input_infh, input_format)
@@ -158,43 +180,12 @@ def convert_msa_format(clustal_multiple_alignment, input_format, output_format):
     output_outfh.close()
     input_infh.close()
     with open("%s/msa.fasta"%path, 'r') as output_infh:
-        fasta_multiple_alignment = output_infh.read()
-        return fasta_multiple_alignment
-
-def parse_protein_clustalw(clustalw_data):
-    """
-    Parses protein data at the format CLUSTAL W.
-
-    Parameters:
-    ---------
-     - clustalw_data: the CLUSTAL W protein data as a String
-
-    Returns:
-    ------
-    A list of PyRNA DNA objects
-    """
-    alignedSequences = {}
-    lines = clustalw_data.strip().split('\n')
-    for line in lines:
-        line = line.strip()
-        if len(line) and not line.startswith('CLUSTAL W'):
-            if not line.startswith('*') and not line.startswith('.') and not line.startswith(':'):
-                tokens = line.split()
-                alignedSequences[tokens[0]] = alignedSequences.get(tokens[0], "") + tokens[1]
-            else:# consensus sequence
-                pass
-
-    proteins = []
-
-    for key in alignedSequences:
-        prot = DNA(name=key.split('/')[0], sequence=alignedSequences[key])
-        proteins.append(prot)
-
-    return proteins
+        output_msa = output_infh.read()
+        return output_msa
 
 def purge_dir(directory, option=None):
     """
-    Removes in a given directory (for example "/tmp") the sub-directories created by the script search_orthologs.py
+    Removes in a given directory the sub-directories created by the script search_orthologs.py
 
     Parameters:
     ---------
@@ -206,7 +197,7 @@ def purge_dir(directory, option=None):
 
     tag = False
     for d in directories:
-        if os.path.isdir(directory+'/'+d): # test if d is a directory
+        if os.path.isdir(directory+'/'+d): # we test if d is a directory
             if re.match('^\w+$', d) and os.access(directory+'/'+d, os.R_OK):
                 files = os.listdir(directory+'/'+d)
                 for f in files:
@@ -214,165 +205,221 @@ def purge_dir(directory, option=None):
                         if f.endswith('.pin'): # file for a database used by BLASTP
                             tag = True    
                     else:
-                        if f.endswith('.hmm') or f.startswith('existing_msa.') or f.startswith('msa.'):# file for a database used by Hmmer() or Muscle() or convert_msa_format()
-                            tag = True
+                        if not d.endswith('_db'):
+                            if f.endswith('.hmm') or f.endswith('.fasta') or f.endswith('.aln'):# file for a database used by the functions Hmmer(), Muscle() and convert_msa_format()
+                                tag = True
             if tag:
                 shutil.rmtree(directory+'/'+d)
                 tag = False
 
-def hmm():
+def hmm(hmm_threshold):
     """
-    Searches orthologs of the Candida species in the Nakaseomyces species.
-    From alignments of multiple protein sequences of the Candida species, building of HMM profils that will allow to find 1 or several orthologs in the Nakaseomyces species using the tool "hmmsearch".
+    Arguments:
+    --------- 
+    -hmm_threshold: Integer (by default: 100 ; the best score) threshold percent / best bit score of hmmsearch
+
+    Description:
+    -----------
+    This function aligns orthologs of the Candida and/or S. cerevisiae species and searches orthologs in the Nakaseomyces species.
     
-    Step 1: building of formatted BLAST databases from protein sequences of the Nakaseomyces species.
-
-    Step 2: for each multiple sequence alignment of Candida proteins, building of an HMM profil. Then, searching of Nakaseomyces orthologs using the tool "hmmsearch".
-        Utilization of the bit score to retrieve the orthologs having a score >= 70 % of the best score.
-
-    Step 3: realignment with Muscle (tool used to do the original alignment on the CGD Website): alignment of the Nakaseomyces orthologs with all the Candida orthologs
-
-    Step 4: updating data in the Mongo databases of the Candida species: 
-        table: 'annotations'
-        field: 'orthologs_in_candida_species' => cgd_orthologs + nakaseo_orthologs
-
-    Step 5: updating data in the Mongo databases of the Nakaseomyces species:
-        table: 'annotations'
-        field: 'alignment' => alignment_id
-        field: 'orthologs_in_candida_species' => cgd_orthologs + nakaseo_orthologs
+    From each gene of C. glabrata and its Candida and/or S. cerevisiae orthologs, it creates an alignment of multiple protein sequences and builds a HMM profil that will allow to find orthologs in the Nakaseomyces species using the tool "hmmsearch".
     
-    Step 6: updating data in the Mongo database named 'comparative_genomics':
-        table: 'proteins'
-        field: 'alignment' => new alignment
+    Step 1: alignment with the Muscle algorithm of the protein sequences of a C. glabrata gene and its Candida and/or S. cerevisiae orthologous genes
+    Step 2: building formatted BLAST databases from protein sequences of the Nakaseomyces species.
+    Step 3: for each multiple sequence alignment of Candida proteins, building an HMM profil. Then, searching Nakaseomyces orthologs using the tool "hmmsearch".
+        Utilization of the bit score to retrieve the orthologs having a score >= n percent of the best score (see the argument -hmm_threshold).
+    Step 4: if nakaseo orthologs exist, realignment with Muscle i.e. alignment of the Nakaseomyces sequences with its Candida and/or cerevisiae orthologous sequences
+            otherwise, the original alignment is stored in the MongoDB
+    Step 5: updating data in the Mongo databases of the Candida and Nakaseomyces species:
+        table 'annotations'
+            field 'alignment': list of alignment IDs ; for C. glabrata, this list contains a unique ID
+            field 'orthologs_in_candida_species': list of 'annotations_id@database_name'
+    Step 6: creation of a Mongo database named 'comparative_genomics':
+        table 'proteins'
+            field '_id': proteins ID = alignment ID
+            field 'locus_tag': name of the C. glabrata locus used to do the original alignment
+            field 'alignment': multiple sequence alignments = dictionary with keys 'all_species' AND 'non_pathogenic_species' AND/OR 'pathogenic_species'
+            field 'spscore': SP scores of the MSA = dictionary with keys 'all_species' AND 'non_pathogenic_species' AND/OR 'pathogenic_species'
+            field 'percentile_of_spscore': percentiles of SP scores =  dictionary with keys 'all_species' AND 'non_pathogenic_species' AND/OR 'pathogenic_species'
+
+    Comments:
+        Species in CGD = ['Candida_glabrata_CBS_138', 'Candida_albicans_SC5314', 'Candida_dubliniensis_CD36' and 'Candida_parapsilosis_CDC317']
+        Pathogenic species = ['Candida_glabrata_CBS_138', 'Candida_albicans_SC5314', 'Candida_dubliniensis_CD36', 'Candida_parapsilosis_CDC317', 'Nakaseomyces_bracarensis_CBS_10154', 'Nakaseomyces_nivariensis_CBS_9983'] 
     """
+    non_pathogens = ['Nakaseomyces_bacillisporus_CBS_7720', 'Nakaseomyces_castellii_CBS_4332', 'Nakaseomyces_delphensis_CBS_2170']#and Saccharomyces cerevisiae S288C
+
     client = MongoClient()
 
-    cgd_dbs = ['Candida_glabrata_CBS_138', 'Candida_albicans_SC5314', 'Candida_dubliniensis_CD36', 'Candida_parapsilosis_CDC317']
-    cgd_dict ={}
-    for species in cgd_dbs:
-        cgd_molecules = []
-        for annotation in client[species]['annotations'].find({'translation':{'$exists':True}}, timeout = False):
-            dna = DNA(name=annotation['locus_tag'], sequence=annotation['translation'])
-            dna.id = annotation['_id']
-            dna.source = annotation['source']
-            cgd_molecules.append(dna)
-        cgd_dict[species] = cgd_molecules
+    all_spscores = []
+    non_patho_spscores = []
+    patho_spscores = []
 
     ### CREATION OF FORMATTED BLAST DATABASES FROM PROTEINS OF THE NAKASEOMYCES SPECIES ###
-    nakaseo_dbs = ['Nakaseomyces_bracarensis_CBS_10154', 'Nakaseomyces_castellii_CBS_4332', 'Nakaseomyces_nivariensis_CBS_9983', 'Nakaseomyces_bacillisporus_CBS_7720', 'Nakaseomyces_delphensis_CBS_2170']
+    nakaseo_dbs = ['Nakaseomyces_bracarensis_CBS_10154', 'Nakaseomyces_castellii_CBS_4332', 'Nakaseomyces_nivariensis_CBS_9983', 'Nakaseomyces_delphensis_CBS_2170', 'Nakaseomyces_bacillisporus_CBS_7720']
     nakaseo_dict = {}
     for species in nakaseo_dbs:
         nakaseo_molecules = []
-        for annotation in client[species]['annotations'].find(timeout = False):
+        for annotation in client[species]['annotations'].find({'translation':{'$exists':True}}, no_cursor_timeout = True):#tRNA, ncRNA and rRNA have not translated sequence
             dna = DNA(name=annotation['locus_tag'], sequence=annotation['translation'])
             dna.id = annotation['_id']
-            dna.source = annotation['source'] # for example: "db:gryc:Candida_bracarensis_CBS_10154"
             nakaseo_molecules.append(dna)
-        blast = Blast(target_molecules=nakaseo_molecules)
-        blast.format_db(is_nucleotide=False) # use formatdb of RNA_algo/blast-2.2.26 (not Tools/ncbi-blast-2.2.29+)
+        blast = Blast(target_molecules=nakaseo_molecules, cache_dir="/tmp/%s_db"%species)
+        blast.format_db(is_nucleotide=False)
         nakaseo_dict[species] = [blast.formatted_db, nakaseo_molecules]
 
-    ### FOR EACH PROTEIN ALIGNMENT, SEACHING OF ORTHOLOGS IN THE NAKASEOMYCES SPECIES AND REALIGNMENT ###
-    aln_total = client['comparative_genomics']['proteins'].find().count()
-    print "Total number of aligned loci: %i"%aln_total 
-    aln_counter = 0
-    hmm_results = {} 
-    for protein in client['comparative_genomics']['proteins'].find(timeout = False):
-        aln_counter += 1
-        locus_tag = protein['locus_tag']
-        alignment_id = protein['_id']
-        print "locus number %i named %s in progress (%.2f %% of total aligned loci)"%(aln_counter, locus_tag, (aln_counter/float(aln_total))*100)
-        multiple_alignment = protein['alignment'] # multiple protein sequence alignment at CLUSTAL W format
-        clustalw_molecules = parse_protein_clustalw(multiple_alignment)
-        
-        fasta_alignment = convert_msa_format(multiple_alignment, "clustal", "fasta")
+    total_loci = client['Candida_glabrata_CBS_138']['annotations'].find({'alignment':{'$exists':False}}).count()
+    print "Total number of genes processed: %i"%total_loci
+    loci_counter = 0
 
-        nakaseo_to_align = []
-        nakaseo_orthologs = []
-        for species in nakaseo_dbs:
-            hmmer = Hmmer(seqdb=nakaseo_dict[species][0]) # seqdb = BLAST protein database
+    ### FROM EACH C. GLABRATA LOCUS THAT HAS NOT ALIGNMENT IN THE MONGODB ###
+    for glabrata_annotation in client['Candida_glabrata_CBS_138']['annotations'].find({'alignment':{'$exists':False}}, no_cursor_timeout = True):#find({'locus_tag':{'$in':["CAGL0M05665g", "CAGL0G06006g"]}}):
+        loci_counter += 1
+        locus_tag = glabrata_annotation['locus_tag']
+        print "Locus number %i named %s in progress (%.2f %% of total loci)"%(loci_counter, locus_tag, (loci_counter/float(total_loci))*100)
+        aligned_orthologs = []
+        cgd_molecules_to_align = []
+        nakaseo_molecules_to_align = []
+        non_patho_mol_to_align = []
+        patho_mol_to_align = []
+        fasta_alignment = None
+        non_pathogen_alignment = None
+        pathogen_alignment = None
+        spscore = None
+        spscore_for_non_pathogen = None
+        spscore_for_pathogen = None
+        if glabrata_annotation.has_key('orthologs_in_candida_species'):
+            for ortholog_in_candida in glabrata_annotation['orthologs_in_candida_species']:
+                aligned_orthologs.append(ortholog_in_candida)
+                ortholog_annotation = client[ortholog_in_candida.split('@')[1]]['annotations'].find_one({'_id': ortholog_in_candida.split('@')[0]})
+                molecule_to_align = DNA(name=ortholog_annotation['locus_tag'], sequence=ortholog_annotation['translation'])# we get Candida orthologous sequence
+                cgd_molecules_to_align.append(molecule_to_align)
+                patho_mol_to_align.append(molecule_to_align)#all CGD Candida species are pathogenic
+        if glabrata_annotation.has_key('sace_ortholog'):
+            sace_molecule_to_align = DNA(name=glabrata_annotation['sace_ortholog'][0], sequence=glabrata_annotation['sace_ortholog'][1])# we get S. cerevisiae orthologous sequence
+            cgd_molecules_to_align.append(sace_molecule_to_align)
+            non_patho_mol_to_align.append(sace_molecule_to_align)
 
-            hmmer.hmmbuild(multiple_alignment, locus_tag)
-            df = hmmer.hmmsearch()
-            if not df.empty:
-                i = 0
-                best_score = None
-                for row in df.iterrows():
-                    i += 1
-                    data_hmmer = row[1]
-                    if data_hmmer['target']:
-                        if i == 1:
-                            best_score = data_hmmer['score']
-                            percent = 100
-                        elif i > 1:
-                            percent = (data_hmmer['score'] / best_score) * 100
-                        if percent >= 70:
-                            for nakaseo_molecule in nakaseo_dict[species][1]:
-                                if nakaseo_molecule.name == data_hmmer['target']:
-                                    if nakaseo_molecule.sequence.endswith('*'):
-                                        nakaseo_molecule.sequence = nakaseo_molecule.sequence[:-1]
-                                    nakaseo_to_align.append(nakaseo_molecule)
-                                    nakaseo_orthologs.append("%s@%s"%(nakaseo_molecule.id, nakaseo_molecule.source.split(':')[-1]))# for example, nakaseo_molecule.source = "db:gryc:Candida_bracarensis"
-                                    break
+        ###  ALIGNMENT OF THE ORTHOLOGOUS PROTEIN SEQUENCES OF CANDIDA SPECIES & CEREVISIAE ###
+        if cgd_molecules_to_align:
+            aligned_orthologs.append("%s@Candida_glabrata_CBS_138"%glabrata_annotation['_id'])
+            cagl_molecule_to_align = DNA(name=locus_tag, sequence=glabrata_annotation['translation'])# we get C. glabrata sequence
+            cgd_molecules_to_align.append(cagl_molecule_to_align)
+            patho_mol_to_align.append(cagl_molecule_to_align)
+            muscle = Muscle(fasta_sequences=to_fasta(molecules=cgd_molecules_to_align))
+            fasta_alignment = muscle.align()
 
-        ### SOME ORTHOLOGS OF THE CANDIDA SPECIES ARE NOT PRESENT IN THE ORIGINAL ALIGNMENT ###
-        cgd_to_align = []
-        cgd_orthologs = []
-        for cgd_db in cgd_dbs: 
-            for annotation in client[cgd_db]['annotations'].find({'alignment': alignment_id}, timeout = False): # several annotations (different locus_tags) can have the same alignment
-                cgd_orthologs.append("%s@%s"%(annotation['_id'], cgd_db))
-                for cgd_molecule in cgd_dict[cgd_db]:
-                    if cgd_molecule.name == annotation['locus_tag']:
-                        tag = True
-                        for clustalw_molecule in clustalw_molecules:
-                            if cgd_molecule.name == clustalw_molecule.name:
-                                tag = False
-                        if tag:
-                            cgd_to_align.append(cgd_molecule)
-                        break
-
-        molecules_to_align = cgd_to_align+nakaseo_to_align 
-        
-        ### REALIGNMENT WITH ALL ORTHOLOGOUS SEQUENCES ###
-        if molecules_to_align:
-            muscle = Muscle(fasta_sequences=to_fasta(molecules=molecules_to_align))
-            if len(molecules_to_align) == 1:
-                output_msa = muscle.realign(existing_msa=fasta_alignment)
-            else:
-                input_msa = muscle.align()
-                output_msa = muscle.realign(existing_msa=fasta_alignment, new_seqs=input_msa)
-
-            ### USEFUL FOR THE FOLLOWING STEP OF MSA UPDATING ###
+            ### FOR EACH PROTEIN ALIGNMENT, SEACHING OF ORTHOLOGS IN THE NAKASEOMYCES SPECIES AND REALIGNMENT ###
+            for species in nakaseo_dbs:
+                hmmer = Hmmer(seqdb=nakaseo_dict[species][0]) # seqdb = BLAST protein database
+                hmmer.hmmbuild(fasta_alignment, locus_tag)
+                df = hmmer.hmmsearch()
+                if not df.empty:
+                    i = 0
+                    best_score = None
+                    for row in df.iterrows():
+                        i += 1
+                        data_hmmer = row[1]
+                        if data_hmmer['target']:
+                            if i == 1:
+                                best_score = data_hmmer['score']
+                                percent = 100
+                            elif i > 1:
+                                percent = (data_hmmer['score'] / best_score) * 100
+                            if percent >= hmm_threshold:
+                                for nakaseo_molecule in nakaseo_dict[species][1]:
+                                    if nakaseo_molecule.name == data_hmmer['target']:
+                                        if nakaseo_molecule.sequence.endswith('*'):
+                                            nakaseo_molecule.sequence = nakaseo_molecule.sequence[:-1]
+                                        nakaseo_molecules_to_align.append(nakaseo_molecule)
+                                        if species in non_pathogens:
+                                            non_patho_mol_to_align.append(nakaseo_molecule)
+                                        else:
+                                            patho_mol_to_align.append(nakaseo_molecule)
+                                        aligned_orthologs.append("%s@%s"%(nakaseo_molecule.id, species))
+                                        break
             
-            hmm_results[alignment_id] = output_msa
-            
-            ### DATA UPDATING IN THE CANDIDA SPECIES MONGO DATABASES ###
-            for cgd_db in cgd_dbs:
-                for annotation in client[cgd_db]['annotations'].find({'alignment': alignment_id}, timeout = False):
-                    cgd_orthologs_copy = cgd_orthologs[:]
-                    for ortholog in cgd_orthologs:
-                        if annotation['_id'] in ortholog:
-                            cgd_orthologs_copy.remove(ortholog) # removes the current CGD ortholog in the list   
-                    client[cgd_db]['annotations'].update({'_id': annotation['_id']},{'$set':{'orthologs_in_candida_species': cgd_orthologs_copy+nakaseo_orthologs}}, False)     
-            
-            ### DATA UPDATING IN THE NAKASEOMYCES SPECIES MONGO DATABASES ###
-            for nakaseo in nakaseo_to_align:
-                nakaseo_db = nakaseo.source.split(':')[-1]
-                nakaseo_orthologs_copy = nakaseo_orthologs[:]
-                for ortholog in nakaseo_orthologs:
-                    if nakaseo.id in ortholog:
-                        nakaseo_orthologs_copy.remove(ortholog) # removes the current nakaseo ortholog in the list     
-                client[nakaseo_db]['annotations'].update({'_id': nakaseo.id},{'$set':{'alignment': alignment_id, 'orthologs_in_candida_species': cgd_orthologs+nakaseo_orthologs_copy}}, False)
-    
-        purge_dir(directory="/tmp")
+            ### REALIGNMENT WITH ALL ORTHOLOGOUS SEQUENCES ###
+            if nakaseo_molecules_to_align:
+                muscle = Muscle(fasta_sequences=to_fasta(molecules=nakaseo_molecules_to_align))
+                if len(nakaseo_molecules_to_align) == 1:
+                    fasta_alignment = muscle.realign(existing_msa=fasta_alignment)
+                else:
+                    input_msa = muscle.align()
+                    fasta_alignment = muscle.realign(existing_msa=fasta_alignment, new_seqs=input_msa)
+
+            ### SP SCORE CALCULATION FROM THE MSA ###
+            muscle2 = Muscle(fasta_sequences=fasta_alignment)# MSA with or without Nakaseo
+            spscore = muscle2.get_spscore()
+            all_spscores.append(spscore)
+
+            ### ALIGNMENT BETWEEN SEQUENCES OF NON-PATHOGENIC OR PATHOGENIC SPECIES ###
+            if non_patho_mol_to_align:
+                muscle = Muscle(fasta_sequences=to_fasta(molecules=non_patho_mol_to_align))
+                non_pathogen_alignment = muscle.align()
+                muscle2 = Muscle(fasta_sequences=non_pathogen_alignment)
+                spscore_for_non_pathogen = muscle2.get_spscore()
+                non_patho_spscores.append(spscore_for_non_pathogen)
+            if patho_mol_to_align:
+                muscle = Muscle(fasta_sequences=to_fasta(molecules=patho_mol_to_align))
+                pathogen_alignment = muscle.align()
+                muscle2 = Muscle(fasta_sequences=pathogen_alignment)
+                spscore_for_pathogen = muscle2.get_spscore()
+                patho_spscores.append(spscore_for_pathogen)
+
+        ### UPDATING THE MONGO DATABASES ###
+        if aligned_orthologs:
+            alignment_id = str(ObjectId())
+            for aligned_ortholog in aligned_orthologs:
+                aligned_orthologs_copy = aligned_orthologs[:]
+                aligned_orthologs_copy.remove(aligned_ortholog) # we remove the current ortholog in the list
+                annotation = client[aligned_ortholog.split('@')[1]]['annotations'].find_one({'_id': aligned_ortholog.split('@')[0]})
+                aln_ids = annotation.get('alignment')
+                if not aln_ids:
+                    client[aligned_ortholog.split('@')[1]]['annotations'].update({'_id': annotation['_id']},{'$set':{'alignment': [alignment_id], 'orthologs_in_candida_species': aligned_orthologs_copy}}, False)
+                else:
+                    ### A sequence that is orthologous to several genes of C. glabrata will be in several multiple alignments ### Example: CAAL locus "C4_02340W_A" ; CAGL loci "CAGL0M05665g" AND "CAGL0G06006g"
+                    aln_ids.append(alignment_id)
+                    candida_orthologs = annotation.get('orthologs_in_candida_species')
+                    for ortho in aligned_orthologs_copy:
+                        if ortho not in candida_orthologs:
+                            candida_orthologs.append(ortho)
+                    ### UPDATING THE CANDIDA AND NAKASEO MONGO DATABASES ###
+                    client[aligned_ortholog.split('@')[1]]['annotations'].update({'_id': annotation['_id']},{'$set':{'alignment': aln_ids, 'orthologs_in_candida_species': candida_orthologs}}, False)
+
+            ### INSERT A DOCUMENT IN THE COMPARATIVE GENOMICS MONGO DATABASE ###
+            proteins_document = {
+                                '_id': alignment_id,
+                                'locus_tag': locus_tag,
+                                'alignment': {'all_species': fasta_alignment},# if we need a msa at the format clustalw: convert_msa_format(fasta_alignment, "fasta", "clustal")
+                                'spscore': {'all_species': spscore}
+                                }
+
+            if spscore_for_non_pathogen.__class__ is float:# we eliminate None but conserve 0.0 ; if spscore is not None, msa also
+                proteins_document['alignment']['non_pathogenic_species'] = non_pathogen_alignment
+                proteins_document['spscore']['non_pathogenic_species'] = spscore_for_non_pathogen
+            if spscore_for_pathogen.__class__ is float:
+                proteins_document['alignment']['pathogenic_species'] = pathogen_alignment
+                proteins_document['spscore']['pathogenic_species'] = spscore_for_pathogen
+            client['comparative_genomics']['proteins'].insert(proteins_document)
+
+            purge_dir(directory="/tmp")
     purge_dir(directory="/tmp", option="blastdb")
 
-    ### MSA UPDATING IN THE COMPARATIVE GENOMICS MONGO DATABASE ###
-    for item in hmm_results.iteritems(): 
-        client['comparative_genomics']['proteins'].update({'_id': item[0]},{'$set':{'alignment': item[1]}}, False)
-    
-    client.disconnect()
+    ### WE CALCULATE THE PERCENTILE OF SP SCORE FOR EACH ALIGNMENT ###
+    for annotation in client['comparative_genomics']['proteins'].find({'spscore':{'$exists':True}}, no_cursor_timeout = True):
+        percentile = {'all_species': scipy.stats.percentileofscore(all_spscores, annotation['spscore']['all_species'])}
+        if annotation['spscore'].has_key('non_pathogenic_species'):
+            percentile['non_pathogenic_species'] = scipy.stats.percentileofscore(all_spscores, annotation['spscore']['non_pathogenic_species'])
+        if annotation['spscore'].has_key('pathogenic_species'):
+            percentile['pathogenic_species'] = scipy.stats.percentileofscore(all_spscores, annotation['spscore']['pathogenic_species'])    
+        client['comparative_genomics']['proteins'].update({'_id': annotation['_id']}, {'$set':{'percentile_of_spscore': percentile}}, False)
+
+    client.close()
 
 if __name__ == '__main__':
+    hmm_threshold = 100
 
-    hmm() 
+    if "-threshold" in sys.argv:
+        hmm_threshold = int(sys.argv[sys.argv.index("-threshold")+1])
+
+    hmm(hmm_threshold=hmm_threshold) 
