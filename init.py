@@ -3,9 +3,9 @@
 from flask import Flask,request,render_template, jsonify
 from pymongo import MongoClient
 from json import dumps
-import sys
+import sys, os
 
-sys.path.append('scripts')
+sys.path.append(os.path.abspath('/home/amarchand/Caagle_multi/scripts'))
 import crispr_tool
 
 app = Flask(__name__)
@@ -51,9 +51,9 @@ def init():
 def index():
     return render_template('index.html')
 
-@app.route('/crispr.html', methods=['GET', 'POST'])
+@app.route('/casting.html', methods=['GET', 'POST'])
 def crispr():
-    return render_template('crispr.html', data=dumps(gene_names))
+    return render_template('casting.html', data=dumps(gene_names))
 
 @app.route('/about.html', methods=['GET', 'POST'])
 def about():
@@ -108,31 +108,36 @@ def crisprform():
                             locus_tag = annotation['locus_tag']
 
                 gene_in_db = False
-                for grna in db['grnas'].find():
-                    if grna['gene_name'] == locus_tag:
-                        gene_in_db = True
-                        gcContent = grna['gcContent']
+                grnas = db['grnas']
+                if grnas.find({"gene_name": locus_tag}):
+                    gene_in_db = True
+                    grna = grnas.find({"gene_name": locus_tag})
+                    for record in grna:
+                        gcContent = record['gcContent']
                         if gcContent >= gc_min and gcContent <= gc_max:
-                            pamSequence = grna['pamSequence']
+                            pamSequence = record['pamSequence']
                             if (pam_mode == 0 and pamSequence[1:] == 'GG') or (pam_mode == 1 and pamSequence[1:] == 'AG') or (pam_mode == 2 and pamSequence[2:] == 'G'): 
-                                genomicStrand = grna['genomicStrand']
+                                genomicStrand = record['genomicStrand']
                                 if (search_mode == 's' and genomicStrand == '+') or (search_mode == 'a' and genomicStrand == '-') or search_mode == 'b':
-                                    result.append(grna)
+                                    result.append(record)
                 if gene_in_db == False:
                     result = crispr_tool.find(db_name='Candida_glabrata_CBS_138', genome_name=None, start=None, end=None, pam_mode=pam_mode, search_mode=search_mode, gc_min=gc_min, gc_max=gc_max, mism=5, guides_file=None, host='localhost', port=27017, gene_name=gene_name, sequence=None)
 
         # Select by coordinates
         elif region_type == 'collapseFive':
             chromosome = request.args.get('chromosome', None, type=str)
-            genomic_start = request.args.get('genomic_start', None, type=int)
-            genomic_end = request.args.get('genomic_end', None, type=int)
-            if chromosome and genomic_start and genomic_end:
+            raw_genomic_start = request.args.get('genomic_start', None, type=str)
+            raw_genomic_end = request.args.get('genomic_end', None, type=str)
+            if chromosome and raw_genomic_start and raw_genomic_end:
+                genomic_start = raw_genomic_start.replace(',','').replace('.','').replace(' ','')
+                genomic_end = raw_genomic_end.replace(',','').replace('.','').replace(' ','')
                 print "pam :", pam_mode
-                result = crispr_tool.find(db_name='Candida_glabrata_CBS_138', genome_name=chromosome, start=genomic_start, end=genomic_end, pam_mode=pam_mode, search_mode=search_mode, gc_min=gc_min, gc_max=gc_max, mism=5, guides_file=None, host='localhost', port=27017, gene_name=None, sequence=None)
+                result = crispr_tool.find(db_name='Candida_glabrata_CBS_138', genome_name=chromosome, start=int(genomic_start), end=int(genomic_end), pam_mode=pam_mode, search_mode=search_mode, gc_min=gc_min, gc_max=gc_max, mism=5, guides_file=None, host='localhost', port=27017, gene_name=None, sequence=None)
         # Select by sequence
         elif region_type == 'collapseSix':
-            sequence = request.args.get('sequence', None, type=str)
-            if sequence:
+            raw_sequence = request.args.get('sequence', None, type=str)
+            if raw_sequence:
+                sequence = raw_sequence.replace(' ','').replace('\n','')
                 result = crispr_tool.find(db_name='Candida_glabrata_CBS_138', genome_name=None, start=None, end=None, pam_mode=pam_mode, search_mode=search_mode, gc_min=gc_min, gc_max=gc_max, mism=5, guides_file=None, host='localhost', port=27017, gene_name=None, sequence=sequence)
 
     return dumps(result)
@@ -142,4 +147,5 @@ def page_not_found(e):
     return render_template('404.html'), 404
 
 if __name__ == '__main__':
-    app.run() #if app.run() => localhost by default
+    print "The future is here: http://charn-ibmc.u-strasbg.fr:8080/casting.html"
+    app.run(debug=True, host='0.0.0.0', port=8080) #if app.run() => localhost by default
