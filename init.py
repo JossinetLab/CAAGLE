@@ -10,22 +10,22 @@ sys.path.append(os.path.abspath('/home/amarchand/Caagle_multi/scripts'))
 app = Flask(__name__)
 
 # Contig names for Candida glabrata CBS138
-contig_names_dict = {'A': 'NC_005967',
-                     'B': 'NC_005968',
-                     'C': 'NC_006026',
-                     'D': 'NC_006027',
-                     'E': 'NC_006028',
-                     'F': 'NC_006029',
-                     'G': 'NC_006030',
-                     'H': 'NC_006031',
-                     'I': 'NC_006032',
-                     'J': 'NC_006033',
-                     'K': 'NC_006034',
-                     'L': 'NC_006035',
-                     'M': 'NC_006036',
-                     'MT': 'NC_004691'}
+contig_names_dict = {'A': ['ChrA_C_glabrata_CBS138', 'NC_005967'],
+                     'B': ['ChrB_C_glabrata_CBS138', 'NC_005968'],
+                     'C': ['ChrC_C_glabrata_CBS138', 'NC_006026'],
+                     'D': ['ChrD_C_glabrata_CBS138', 'NC_006027'],
+                     'E': ['ChrE_C_glabrata_CBS138', 'NC_006028'],
+                     'F': ['ChrF_C_glabrata_CBS138', 'NC_006029'],
+                     'G': ['ChrG_C_glabrata_CBS138', 'NC_006030'],
+                     'H': ['ChrH_C_glabrata_CBS138', 'NC_006031'],
+                     'I': ['ChrI_C_glabrata_CBS138', 'NC_006032'],
+                     'J': ['ChrJ_C_glabrata_CBS138', 'NC_006033'],
+                     'K': ['ChrK_C_glabrata_CBS138', 'NC_006034'],
+                     'L': ['ChrL_C_glabrata_CBS138', 'NC_006035'],
+                     'M': ['ChrM_C_glabrata_CBS138', 'NC_006036'],
+                     'MT': ['mito_C_glabrata_CBS138', 'NC_004691']}
 
-contig_names_dict_inv = {v: k for k, v in contig_names_dict.items()}
+# contig_names_dict_inv = {v: k for k, v in contig_names_dict.items()}
 
 gene_names = []
 client = MongoClient('localhost', 27017)
@@ -110,6 +110,7 @@ def crisprform():
                 grnas = db['grnas']
                 if grnas.find({"gene_name": locus_tag}):
                     gene_in_db = True
+                    print locus_tag
                     grna = grnas.find({"gene_name": locus_tag})
                     for record in grna:
                         gcContent = record['gcContent']
@@ -119,7 +120,9 @@ def crisprform():
                                 genomicStrand = record['genomicStrand']
                                 if (search_mode == 's' and genomicStrand == '+') or (search_mode == 'a' and genomicStrand == '-') or search_mode == 'b':
                                     result.append(record)
-                if gene_in_db == False:
+                if gene_in_db == True:
+                    result = sorted(result, key=lambda k: k['doench_score'], reverse=True)
+                else:
                     result = crispr_tool.find(db_name='Candida_glabrata_CBS_138', genome_name=None, start=None, end=None, pam_mode=pam_mode, search_mode=search_mode, gc_min=gc_min, gc_max=gc_max, mism=5, guides_file=None, host='localhost', port=27017, gene_name=gene_name, sequence=None)
 
         # Select by coordinates
@@ -130,8 +133,7 @@ def crisprform():
             if chromosome and raw_genomic_start and raw_genomic_end:
                 genomic_start = raw_genomic_start.replace(',','').replace('.','').replace(' ','')
                 genomic_end = raw_genomic_end.replace(',','').replace('.','').replace(' ','')
-                print "pam :", pam_mode
-                result = crispr_tool.find(db_name='Candida_glabrata_CBS_138', genome_name=chromosome, start=int(genomic_start), end=int(genomic_end), pam_mode=pam_mode, search_mode=search_mode, gc_min=gc_min, gc_max=gc_max, mism=5, guides_file=None, host='localhost', port=27017, gene_name=None, sequence=None)
+                result = crispr_tool.find(db_name='Candida_glabrata_CBS_138', genome_name=contig_names_dict[chromosome][0], start=int(genomic_start), end=int(genomic_end), pam_mode=pam_mode, search_mode=search_mode, gc_min=gc_min, gc_max=gc_max, mism=5, guides_file=None, host='localhost', port=27017, gene_name=None, sequence=None)
         # Select by sequence
         elif region_type == 'collapseSix':
             raw_sequence = request.args.get('sequence', None, type=str)
